@@ -16,8 +16,14 @@ export const RegisterUser = async (value) => {
 
 export const LoginUser = async (value) =>{
     try {
-        const response = await axiosInstance.post("api/users/login", value);
-        return response.data
+        const token = localStorage.getItem('token');
+        const response = await axiosInstance.post("api/users/login", {
+            headers : {
+                Authorization: `Bearer ${token}`
+            }, 
+            ...value
+        });
+        return response.data;
     } catch (error) {
         console.log(error);
     }

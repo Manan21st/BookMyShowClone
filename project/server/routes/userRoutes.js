@@ -42,6 +42,9 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
+
+  console.log(req)
+
   try {
     const user = await User.findOne({ email: req.body.email });
 
@@ -64,7 +67,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.secret_key_jwt, {
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY_JWT , {
       expiresIn: "1d",
     });
 
@@ -87,7 +90,7 @@ router.get("/get-current-user", authMiddleware, async (req, res) => {
     success: true,
     message: 'You are authorized to go to the protected route!',
     data: user
-   })
+  })
 });
 
 // forgot password
