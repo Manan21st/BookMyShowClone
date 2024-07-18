@@ -1,6 +1,6 @@
-const router = require("express").Router();
 const express = require("express");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const router = require("express").Router();
+const stripe = process.env.STRIPE_SECRET_KEY;
 const authMiddleware = require("../middlewares/authMiddleware");
 const Booking = require("../models/bookingModel");
 const Show = require("../models/showModel");
@@ -8,41 +8,41 @@ const EmailHelper = require("../utils/emailSender");
 
 const endpointSecret = process.env.END_POINT;
 
- // Webhook endpoint 
-router.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  console.log('Webhook Called')
-  const sig = request.headers['stripe-signature'];
-  let event;
+// Webhook endpoint
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  (request, response) => {
+    console.log("Webhook Called");
+    const sig = request.headers["stripe-signature"];
+    let event;
 
-try {
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-  } catch (err) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case "payment_intent.succeeded":
+        const paymentIntent = event.data.object;
+        handlePaymentIntentSucceeded(paymentIntent);
+        break;
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    response.send();
   }
-
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      handlePaymentIntentSucceeded(paymentIntent);
-      break;
-    // ... handle other event types
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-
-
-
-
-  response.send();
-});
+);
 
 // Function to handle payment_intent.succeeded event
 async function handlePaymentIntentSucceeded(paymentIntent) {
-  console.log('Succesfull')
-  console.log(paymentIntent)
+  console.log("Succesfull");
+  console.log(paymentIntent);
 }
 
 router.post("/make-payment", async (req, res) => {
@@ -97,23 +97,23 @@ router.post("/book-show", async (req, res) => {
       bookedSeats: updatedBookedSeats,
     });
 
-    const populatedBooking = await Booking.findById(newBooking._id).populate("user")
-    .populate("show")
-    .populate({
-      path: "show",
-      populate: {
-        path: "movie",
-        model: "movies",
-      },
-    })
-    .populate({
-      path: "show",
-      populate: {
-        path: "theatre",
-        model: "theatres",
-      },
-    });
-
+    const populatedBooking = await Booking.findById(newBooking._id)
+      .populate("user")
+      .populate("show")
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie",
+          model: "movies",
+        },
+      })
+      .populate({
+        path: "show",
+        populate: {
+          path: "theatre",
+          model: "theatres",
+        },
+      });
 
     console.log("this is populated Booking", populatedBooking);
     // console.log(populatedBooking.user.email);
@@ -125,17 +125,14 @@ router.post("/book-show", async (req, res) => {
     });
 
     await EmailHelper("ticketTemplate.html", populatedBooking.user.email, {
-       name: populatedBooking.user.name,
-       movie : populatedBooking.show.movie.title,
-       theatre : populatedBooking.show.theatre.name,
-       date:populatedBooking.show.date,
-       time:populatedBooking.show.time,
-       seats : populatedBooking.seats,
-       amount : populatedBooking.seats.length * populatedBooking.show.ticketPrice,
-       transactionId : populatedBooking.transactionId,
-       
-       
-
+      name: populatedBooking.user.name,
+      movie: populatedBooking.show.movie.title,
+      theatre: populatedBooking.show.theatre.name,
+      date: populatedBooking.show.date,
+      time: populatedBooking.show.time,
+      seats: populatedBooking.seats,
+      amount: populatedBooking.seats.length * populatedBooking.show.ticketPrice,
+      transactionId: populatedBooking.transactionId,
     });
   } catch (err) {
     res.send({

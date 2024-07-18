@@ -1,8 +1,6 @@
 const router = require('express').Router();
 const Movie = require('../models/movieModel')
 
-// Add a Movie
-
 router.post('/add-movie' , async (req , res)=>{
     try {
          const newMovie = new Movie(req.body)
@@ -18,9 +16,6 @@ router.post('/add-movie' , async (req , res)=>{
         })
     }
 })
-
-
-// Get all the movies
 
 router.get('/get-all-movies' , async(req , res)=>{
   try {
@@ -92,16 +87,6 @@ router.get('/movie/:id', async (req, res) => {
         })
     }
 });
-
-
-
-
-
-
-//APi end 
-
-
-// update the movie , delete the movie , get all the movies
 
 
 module.exports = router

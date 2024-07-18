@@ -5,8 +5,9 @@ import {axiosInstance} from './index'
 //get all Movies
 export const getAllMovies = async ()=> {
     try {
-        const response = await axiosInstance.get('api/movies/get-all-movies')
-       return response.data
+        const response = await axiosInstance.get('api/movies/get-all-movies');
+        console.log(response.data)
+       return response.data;
     } catch (error) {
         console.error(error)
     }
